@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "QrsMd6WPJQy3OZGxtK1u_"
+uri = "file://artifacts/lumyngo-mobile/assets/images/icon.png"
+type = "image"
+title = "lumyngo app icon"
