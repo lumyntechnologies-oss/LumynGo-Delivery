@@ -35,9 +35,7 @@ minimumReleaseAgeExclude:
   - stripe-replit-sync
 
 packages:
-  - artifacts/*
-  - lib/*
-  - lib/integrations/*
+  - lumyngo
   - scripts
 
 catalog:
@@ -69,8 +67,13 @@ autoInstallPeers: false
 
 onlyBuiltDependencies:
   - '@swc/core'
+  - '@clerk/shared'
+  - '@prisma/client'
+  - '@prisma/engines'
   - esbuild
   - msw
+  - prisma
+  - sharp
   - unrs-resolver
 
 overrides:
