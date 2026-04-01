@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  name      String
+  email     String   @unique
+  phone     String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerOrders  Order[]      @relation("CustomerOrders")
+  riderOrders     Order[]      @relation("RiderOrders")
+  riderProfile    RiderProfile?
+  ratingsGiven    Rating[]     @relation("RatingsGiven")
+  ratingsReceived Rating[]     @relation("RatingsReceived")
+}
+
+enum Role {
+  CUSTOMER
+  RIDER
+  ADMIN
+}
+
+model RiderProfile {
+  id          String      @id @default(cuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType VehicleType
+  license     String
+  status      RiderStatus @default(OFFLINE)
+  currentLat  Float?
+  currentLng  Float?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  locationHistory LocationTracking[]
+}
+
+enum VehicleType {
+  BICYCLE
+  MOTORCYCLE
+  CAR
+  VAN
+}
+
+enum RiderStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  pickupAddress  String
+  pickupLat      Float
+  pickupLng      Float
+  dropoffAddress String
+  dropoffLat     Float
+  dropoffLng     Float
+  status         OrderStatus @default(PENDING)
+  price          Float
+  distance       Float
+  notes          String?
+  customerId     String
+  customer       User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  riderId        String?
+  rider          User?       @relation("RiderOrders", fields: [riderId], references: [id])
+  promoCodeId    String?
+  promoCode      PromoCode?  @relation(fields: [promoCodeId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  payment Payment?
+  ratings Rating[]
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PICKED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id])
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  method        String        @default("PESAPAL")
+  pesapalRef    String?
+  transactionId String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model LocationTracking {
+  id             String       @id @default(cuid())
+  riderProfileId String
+  riderProfile   RiderProfile @relation(fields: [riderProfileId], references: [id], onDelete: Cascade)
+  lat            Float
+  lng            Float
+  timestamp      DateTime     @default(now())
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  fromUserId String
+  fromUser   User     @relation("RatingsGiven", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User     @relation("RatingsReceived", fields: [toUserId], references: [id])
+  score      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+}
+
+model PromoCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  discount  Float
+  isPercent Boolean   @default(true)
+  maxUses   Int       @default(100)
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  orders Order[]
+}
