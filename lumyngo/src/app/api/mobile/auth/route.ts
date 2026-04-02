@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
           data: {
             userId: user.id,
             vehicleType: "MOTORCYCLE",
-            licenseNumber: `MOB-${Date.now()}`,
+            license: `MOB-${Date.now()}`,
             status: "ONLINE",
           },
         });
