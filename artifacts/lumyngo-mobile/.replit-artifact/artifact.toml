@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/lumyngo-mobile/"
+title = "LumynGo Mobile"
+version = "1.0.0"
+id = "artifacts/lumyngo-mobile"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/lumyngo-mobile/" ]
+localPort = 23126
+
+[services.development]
+run = "pnpm --filter @workspace/lumyngo-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lumyngo-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/lumyngo-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "23126"
+BASE_PATH = "/lumyngo-mobile/"

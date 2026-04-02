@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculatePrice } from "@/lib/pricing";
+import { calculatePrice, getDistanceFromGoogleMaps } from "@/lib/pricing";
 
 function getUserId(req: NextRequest) {
   return req.headers.get("x-mobile-user-id");
@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
       where: { status: { in: ["PENDING", "ACCEPTED", "PICKED", "IN_TRANSIT"] } },
     });
 
-    const estimate = calculatePrice(pickupLat, pickupLng, dropoffLat, dropoffLng, activeCount);
+    const distanceKm = await getDistanceFromGoogleMaps(pickupLat ?? 0, pickupLng ?? 0, dropoffLat ?? 0, dropoffLng ?? 0);
+    const estimate = calculatePrice(distanceKm, activeCount);
 
     const order = await prisma.order.create({
       data: {

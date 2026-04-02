@@ -2,11 +2,12 @@
 
 ## Overview
 
-Full-stack delivery management platform for Kenya. Single unified Next.js 15 (App Router) + TypeScript application with real-time tracking, role-based dashboards, and integrated payments.
+Full-stack delivery management platform for Kenya. Consists of a Next.js 15 web app + an Expo React Native mobile app sharing the same PostgreSQL backend.
 
 ## Architecture
 
-- **Framework**: Next.js 15 App Router + TypeScript (single unified app)
+### Web App (`lumyngo/`)
+- **Framework**: Next.js 15 App Router + TypeScript
 - **Database**: PostgreSQL via Prisma ORM v6
 - **Auth**: Clerk v6 (keyless dev mode; add keys via Secrets tab)
 - **Real-time**: Socket.io v4 (custom `server.ts`, path `/api/socketio`)
@@ -15,6 +16,14 @@ Full-stack delivery management platform for Kenya. Single unified Next.js 15 (Ap
 - **Charts**: Recharts
 - **Start command**: `cd lumyngo && pnpm dev` (runs `tsx server.ts`)
 - **Port**: reads `PORT` env var, defaults to 3000
+
+### Mobile App (`artifacts/lumyngo-mobile/` + `lumyngo-mobile/`)
+- **Framework**: Expo SDK 54 + React Native + Expo Router v6
+- **Auth**: Phone-based (no Clerk) — phone + name stored in AsyncStorage, backend creates/finds User by phone
+- **API**: Calls `https://$EXPO_PUBLIC_DOMAIN/api/mobile/*` with `x-mobile-user-id` header
+- **Theme**: Dark navy (#0f172a) matching the web app
+- **Tabs**: Customer (Orders, New, Profile) | Rider (Available, Deliveries, Earnings, Profile)
+- **Workflow**: `artifacts/lumyngo-mobile: expo`
 
 ## User Roles
 
@@ -47,7 +56,11 @@ lumyngo/
 │   │       ├── admin/            # Dashboard stats, users, orders
 │   │       ├── payment/          # PesaPal initiate & callback
 │   │       ├── ratings/          # Order ratings
-│   │       └── promo/            # Promo code validation
+│   │       ├── promo/            # Promo code validation
+│   │       └── mobile/           # Mobile-specific API routes (no Clerk)
+│   │           ├── auth/         # Register/login by phone
+│   │           ├── orders/       # Customer orders CRUD
+│   │           └── rider/        # Rider: orders, accept, update, earnings
 │   ├── lib/
 │   │   ├── auth.ts               # Clerk + Prisma user sync + admin check
 │   │   ├── prisma.ts             # Prisma client singleton
@@ -61,7 +74,18 @@ lumyngo/
 │   ├── features/orders/          # CreateOrderModal component
 │   ├── components/shared/        # AppNav shared navigation
 │   ├── types/index.ts            # Shared TypeScript types
-│   └── middleware.ts             # Clerk auth + role routing
+│   └── middleware.ts             # Clerk auth + role routing (/api/mobile/* is public)
+
+artifacts/lumyngo-mobile/         # Expo mobile app (also mirrored in lumyngo-mobile/)
+├── app/
+│   ├── _layout.tsx               # Root layout with AuthProvider
+│   ├── (tabs)/index.tsx          # Auth gate — redirects based on login state
+│   ├── onboarding.tsx            # Registration (name, phone, role)
+│   ├── (customer)/               # Customer tabs: Orders, New Order, Profile
+│   ├── (rider)/                  # Rider tabs: Available, Deliveries, Earnings, Profile
+│   └── track/[id].tsx            # Order tracking screen (auto-refreshes)
+├── context/AuthContext.tsx        # AsyncStorage-based auth (phone/name/role)
+└── lib/api.ts                    # Typed fetch client for /api/mobile/*
 ```
 
 ## Pricing Logic

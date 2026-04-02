@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     const updated = await prisma.order.update({
       where: { id: orderId },
-      data: { status, ...(status === "DELIVERED" ? { completedAt: new Date() } : {}) },
+      data: { status },
       include: { customer: { select: { id: true, name: true, phone: true } } },
     });
 

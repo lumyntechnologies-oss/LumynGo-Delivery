@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculatePrice } from "@/lib/pricing";
+import { calculatePrice, getDistanceFromGoogleMaps } from "@/lib/pricing";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
     const activeCount = await prisma.order.count({
       where: { status: { in: ["PENDING", "ACCEPTED", "PICKED", "IN_TRANSIT"] } },
     });
-    const result = calculatePrice(pLat, pLng, dLat, dLng, activeCount);
+    const distanceKm = await getDistanceFromGoogleMaps(pLat, pLng, dLat, dLng);
+    const result = calculatePrice(distanceKm, activeCount);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Failed to estimate" }, { status: 500 });
